@@ -1,3 +1,4 @@
+# Central ECR repository definitions for Nexora microservices
 module "ecr_nexora_demo_service" {
   source           = "../../modules/ecr-repo"
   repository_name  = "nexora/demo-service"
