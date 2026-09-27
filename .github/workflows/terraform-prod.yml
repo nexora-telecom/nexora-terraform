@@ -1,0 +1,21 @@
+name: "TERRAFORM PROD CALLER WORKFLOW"
+on:
+  pull_request:
+    branches:
+     - main
+    paths:
+     - 'environments/prod/**'
+     - 'modules/**'
+    
+  push:
+    branches:
+     - main
+    paths:
+     - 'environments/prod/**'
+     - 'modules/**'
+jobs:
+  prod:
+    uses: ./.github/workflows/reusable-terraform.yml
+    with:
+      environment: prod
+

@@ -1,0 +1,21 @@
+name: "TERRAFORM TOOLING CALLER WORKFLOW"
+on:
+  pull_request:
+    branches:
+     - main
+    paths:
+     - 'environments/tooling/**'
+     - 'modules/**'
+    
+  push:
+    branches:
+     - main
+    paths:
+     - 'environments/tooling/**'
+     - 'modules/**'
+jobs:
+  tooling:
+    uses: ./.github/workflows/reusable-terraform.yml
+    with:
+      environment: tooling
+

@@ -1,0 +1,29 @@
+name: Reusable Terraform Workflow Engine
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: "Target environment (tooling or prod)"
+jobs:
+  terraform:
+    runs-on: [self-hosted, linux]
+    defaults:
+      run:
+        working-directory: environments/${{inputs.environment}}
+    steps:
+    - name: "Pull the code from github"
+      uses: actions/checkout@v4
+    - name: "If it is a Pull Request to main then Terraform shell commands (fmt -check, init, validate, plan)"
+      if: github.event_name == 'pull_request'
+      run: |
+        terraform fmt -check
+        terraform init
+        terraform validate
+        terraform plan
+    - name: "If it is merge to main then Terraform shell commands (init, apply -auto-approve)"
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        terraform init
+        terraform apply -auto-approve
