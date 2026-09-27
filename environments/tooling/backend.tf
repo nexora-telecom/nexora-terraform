@@ -5,6 +5,8 @@ terraform {
     region         = "us-east-1"
     dynamodb_table = "nexora-telecom-tfstate-lock-tooling"
     encrypt        = true
-    profile        = "nexora-tooling"
+    assume_role = {
+      role_arn = "arn:aws:iam::729147110687:role/TerraformExecutionRole-Tooling"
+    }
   }
 }
