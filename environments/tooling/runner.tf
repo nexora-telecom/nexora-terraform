@@ -70,8 +70,8 @@ resource "aws_iam_instance_profile" "runner_iam_instance_profile" {
 
 ### QUERY LATEST AMI FOR UBUNTU SERVER 24.04 ###
 data "aws_ami" "ubuntu-ami" {
-  most_recent      = true
-  owners           = ["099720109477"]
+  most_recent = true
+  owners      = ["099720109477"]
   filter {
     name   = "name"
     values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
@@ -85,20 +85,20 @@ data "aws_ami" "ubuntu-ami" {
 
 ### RUNNER EC2 INSTANCE ###
 resource "aws_instance" "runner-ec2" {
-  ami           = data.aws_ami.ubuntu-ami.id
-  instance_type = "t3.small"
-  subnet_id     = aws_subnet.tooling_public_subnet[0].id
-  availability_zone = var.availability_zones[0]
-  iam_instance_profile = aws_iam_instance_profile.runner_iam_instance_profile.id
-  vpc_security_group_ids = [aws_security_group.runner_sg.id]
+  ami                         = data.aws_ami.ubuntu-ami.id
+  instance_type               = "t3.small"
+  subnet_id                   = aws_subnet.tooling_public_subnet[0].id
+  availability_zone           = var.availability_zones[0]
+  iam_instance_profile        = aws_iam_instance_profile.runner_iam_instance_profile.id
+  vpc_security_group_ids      = [aws_security_group.runner_sg.id]
   associate_public_ip_address = true
   root_block_device {
     delete_on_termination = true
-    encrypted = true
-    volume_size = 40
-    volume_type = "gp3"
+    encrypted             = true
+    volume_size           = 40
+    volume_type           = "gp3"
   }
-tags = {
+  tags = {
     Name = "${var.project_name}-runner-ec2"
-} 
+  }
 }

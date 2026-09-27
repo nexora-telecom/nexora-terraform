@@ -10,8 +10,10 @@ terraform {
 
 
 provider "aws" {
-  region  = var.aws_region
-  profile = "nexora-tooling"
+  region = var.aws_region
+  assume_role {
+    role_arn = "arn:aws:iam::729147110687:role/TerraformExecutionRole-Tooling"
+  }
   default_tags {
     tags = {
       Environment = "tooling"
