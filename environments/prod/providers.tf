@@ -10,7 +10,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  assume_role = {
+  assume_role {
     role_arn = "arn:aws:iam::708379561766:role/TerraformExecutionRole-Prod"
   }
   default_tags {
