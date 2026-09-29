@@ -22,8 +22,29 @@ jobs:
         terraform init
         terraform validate
         terraform plan
-    - name: "If it is merge to main then Terraform shell commands (init, apply -auto-approve)"
+    - name: "If merge to main: Plan with detailed-exitcode and apply only if changes exist"
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
         terraform init
-        terraform apply -auto-approve
+        
+        # Disable exit-on-error temporarily so bash does not abort on exit code 2 (diff present)
+        set +e
+        terraform plan -detailed-exitcode -out=tfplan
+        PLAN_EXIT=$?
+        set -e
+
+        if [ $PLAN_EXIT -eq 0 ]; then
+          echo "=========================================================="
+          echo "  NO CHANGES DETECTED: Skipping apply for ${{ inputs.environment }}"
+          echo "=========================================================="
+        elif [ $PLAN_EXIT -eq 2 ]; then
+          echo "=========================================================="
+          echo "  CHANGES DETECTED: Applying saved plan (tfplan)...       "
+          echo "=========================================================="
+          terraform apply tfplan
+        else
+          echo "=========================================================="
+          echo "  TERRAFORM PLAN FAILED WITH ERROR CODE: $PLAN_EXIT       "
+          echo "=========================================================="
+          exit $PLAN_EXIT
+        fi
