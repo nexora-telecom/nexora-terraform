@@ -15,13 +15,35 @@ jobs:
     steps:
     - name: "Pull the code from github"
       uses: actions/checkout@v4
-    - name: "If it is a Pull Request to main then Terraform shell commands (fmt -check, init, validate, plan)"
+    - name: "Gate 1: Terraform Format Check"
+      if: github.event_name == 'pull_request'
+      run: terraform fmt -check
+    - name: "Setup TFLint"
+      if: github.event_name == 'pull_request'
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: latest
+    - name: "Gate 2: Run TFLint"
       if: github.event_name == 'pull_request'
       run: |
-        terraform fmt -check
+        tflint --init
+        tflint --recursive
+    - name: "Gate 3: Security & Misconfiguration Scan (Trivy)"
+      if: github.event_name == 'pull_request'
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'config'
+        scan-ref: '.'
+        exit-code: '0'
+        severity: 'CRITICAL,HIGH'
+    - name: "Gate 4: Terraform Init & Validate"
+      if: github.event_name == 'pull_request'
+      run: |
         terraform init
         terraform validate
-        terraform plan
+    - name: "Gate 5: Terraform Speculative Plan"
+      if: github.event_name == 'pull_request'
+      run: terraform plan
     - name: "If merge to main: Plan with detailed-exitcode and apply only if changes exist"
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
