@@ -22,3 +22,8 @@ output "data_subnet_ids" {
 output "compute_route_table_id" {
   value = module.prod_vpc.compute_route_table_id
 }
+
+output "alb_dns_name" {
+  description = "Public DNS hostname of the production Application Load Balancer"
+  value       = aws_lb.prod_alb.dns_name
+}
