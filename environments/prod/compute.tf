@@ -60,8 +60,6 @@ module "nexora-k8-node-sg" {
   }
   egress_rules = {
     Allow_OutBound = {
-      from_port   = 0
-      to_port     = 0
       ip_protocol = "-1"
       cidr_ipv4   = "0.0.0.0/0"
     }
