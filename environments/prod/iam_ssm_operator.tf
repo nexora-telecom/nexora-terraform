@@ -15,6 +15,7 @@ resource "aws_iam_policy" "nexora_ssm_operator_policy" {
       {
         Action = [
           "ssm:StartSession",
+          "ec2:RebootInstances"
         ]
         Effect = "Allow"
         Resource = [
