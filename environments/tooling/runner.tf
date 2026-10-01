@@ -92,6 +92,14 @@ resource "aws_instance" "runner-ec2" {
   iam_instance_profile        = aws_iam_instance_profile.runner_iam_instance_profile.id
   vpc_security_group_ids      = [aws_security_group.runner_sg.id]
   associate_public_ip_address = true
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  lifecycle {
+    ignore_changes = [ami]
+  }
   root_block_device {
     delete_on_termination = true
     encrypted             = true

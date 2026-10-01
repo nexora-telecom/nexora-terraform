@@ -7,6 +7,9 @@ resource "aws_instance" "this" {
   associate_public_ip_address = var.associate_public_ip_address
   source_dest_check           = var.source_dest_check
   user_data                   = var.user_data
+  lifecycle {
+    ignore_changes = [ami]
+  }
   root_block_device {
     volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
