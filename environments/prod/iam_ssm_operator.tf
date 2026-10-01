@@ -22,8 +22,8 @@ resource "aws_iam_policy" "nexora_ssm_operator_policy" {
           "arn:aws:ec2:${var.aws_region}:708379561766:instance/${module.k8s-worker-01.instance_id}",
           "arn:aws:ec2:${var.aws_region}:708379561766:instance/${module.k8s-worker-02.instance_id}",
           "arn:aws:ec2:${var.aws_region}:708379561766:instance/${module.nat_instance.instance_id}",
-          "arn:aws:ssm:${var.aws_region}::document/AWS-StartSSHSession",
-          "arn:aws:ssm:${var.aws_region}::document/SSM-SessionManagerRunShell"
+          "arn:aws:ssm:*:*:document/AWS-*",
+          "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell"
         ]
       },
       {
