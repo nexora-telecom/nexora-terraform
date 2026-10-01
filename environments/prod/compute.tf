@@ -128,6 +128,7 @@ resource "aws_lb" "prod_alb" {
   security_groups            = [module.nexora-prod-alb-sg.security_group_id]
   subnets                    = module.prod_vpc.public_subnet_ids
   enable_deletion_protection = false
+  drop_invalid_header_fields = true
 
   tags = { Environment = "production", Project = var.project_name }
 }
