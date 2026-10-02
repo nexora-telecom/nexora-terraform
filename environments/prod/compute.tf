@@ -173,3 +173,31 @@ resource "aws_lb_target_group_attachment" "worker-02" {
   target_id        = module.k8s-worker-02.instance_id
   port             = 30080
 }
+
+resource "aws_iam_policy" "k8s_etcd_backup_s3_policy" {
+  name        = "${var.project_name}-prod-etcd-backup-s3-policy"
+  description = "Allows K8s Master node to write etcd backups to S3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::nexora-telecom-terraform-state-708379561766",
+          "arn:aws:s3:::nexora-telecom-terraform-state-708379561766/backups/etcd/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "k8s_node_etcd_backup" {
+  role       = module.nexora-prod-k8s-node-role.role_name
+  policy_arn = aws_iam_policy.k8s_etcd_backup_s3_policy.arn
+}
