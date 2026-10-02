@@ -189,8 +189,8 @@ resource "aws_iam_policy" "k8s_etcd_backup_s3_policy" {
           "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:s3:::nexora-telecom-terraform-state-708379561766",
-          "arn:aws:s3:::nexora-telecom-terraform-state-708379561766/backups/etcd/*"
+          "arn:aws:s3:::nexora-telecom-tfstate-prod-708379561766",
+          "arn:aws:s3:::nexora-telecom-tfstate-prod-708379561766/backups/etcd/*"
         ]
       }
     ]
