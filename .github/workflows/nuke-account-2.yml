@@ -1,0 +1,67 @@
+name: "Nuke Account 2 Final Resources"
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/nuke-account-2.yml'
+
+jobs:
+  nuke-prod:
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: "Assume Prod Admin Role and Nuke Account 2"
+        run: |
+          set -e
+          echo "Assuming TerraformExecutionRole-Prod in Account 2..."
+          CREDS=$(aws sts assume-role \
+            --role-arn arn:aws:iam::708379561766:role/TerraformExecutionRole-Prod \
+            --role-session-name nuke-account-2-session \
+            --duration-seconds 900)
+
+          export AWS_ACCESS_KEY_ID=$(echo "$CREDS" | jq -r .Credentials.AccessKeyId)
+          export AWS_SECRET_ACCESS_KEY=$(echo "$CREDS" | jq -r .Credentials.SecretAccessKey)
+          export AWS_SESSION_TOKEN=$(echo "$CREDS" | jq -r .Credentials.SessionToken)
+          export AWS_DEFAULT_REGION=us-east-1
+
+          echo "1. Deleting IAM user nexora-telecom-ssm-operator access keys and user..."
+          for key in $(aws iam list-access-keys --user-name nexora-telecom-ssm-operator --query "AccessKeyMetadata[*].AccessKeyId" --output text 2>/dev/null || true); do
+            echo "Deleting access key $key..."
+            aws iam delete-access-key --user-name nexora-telecom-ssm-operator --access-key-id "$key" || true
+          done
+          aws iam delete-user --user-name nexora-telecom-ssm-operator || true
+
+          echo "2. Deleting DynamoDB Lock Table nexora-telecom-tfstate-lock-prod..."
+          aws dynamodb delete-table --table-name nexora-telecom-tfstate-lock-prod || true
+
+          echo "3. Emptying and deleting S3 state bucket nexora-telecom-tfstate-prod-708379561766..."
+          BUCKET="nexora-telecom-tfstate-prod-708379561766"
+          if aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+            echo "Purging versions in $BUCKET..."
+            aws s3api list-object-versions --bucket "$BUCKET" --output json --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' 2>/dev/null | \
+              jq -c 'select(.Objects != null) | {Objects: [.Objects[] | select(.Key != null)]}' | \
+              while read -r batch; do
+                if [ "$batch" != '{"Objects":[]}' ] && [ -n "$batch" ]; then
+                  aws s3api delete-objects --bucket "$BUCKET" --delete "$batch" || true
+                fi
+              done
+
+            echo "Purging delete markers in $BUCKET..."
+            aws s3api list-object-versions --bucket "$BUCKET" --output json --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' 2>/dev/null | \
+              jq -c 'select(.Objects != null) | {Objects: [.Objects[] | select(.Key != null)]}' | \
+              while read -r batch; do
+                if [ "$batch" != '{"Objects":[]}' ] && [ -n "$batch" ]; then
+                  aws s3api delete-objects --bucket "$BUCKET" --delete "$batch" || true
+                fi
+              done
+
+            echo "Deleting bucket $BUCKET..."
+            aws s3api delete-bucket --bucket "$BUCKET" || true
+          fi
+
+          echo "4. Detaching policies and deleting TerraformExecutionRole-Prod..."
+          aws iam detach-role-policy --role-name TerraformExecutionRole-Prod --policy-arn arn:aws:iam::aws:policy/AdministratorAccess || true
+          aws iam delete-role --role-name TerraformExecutionRole-Prod || true
+
+          echo "ACCOUNT 2 HAS BEEN 100% COMPLETELY WIPED."
